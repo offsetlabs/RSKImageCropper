@@ -81,6 +81,10 @@ static const CGFloat kLayoutImageScrollViewAnimationDuration = 0.25;
         _applyMaskToCroppedImage = NO;
         _rotationEnabled = NO;
         _cropMode = RSKImageCropModeCircle;
+        _drawMaskOutline = YES;
+        _outlineColor = [UIColor whiteColor];
+        _showLabel = YES;
+        _textForLabel = @"Move and scale";
     }
     return self;
 }
@@ -122,7 +126,9 @@ static const CGFloat kLayoutImageScrollViewAnimationDuration = 0.25;
     
     [self.view addSubview:self.imageScrollView];
     [self.view addSubview:self.overlayView];
-    [self.view addSubview:self.moveAndScaleLabel];
+    if (self.showLabel) {
+        [self.view addSubview:self.moveAndScaleLabel];
+    }
     [self.view addSubview:self.cancelButton];
     [self.view addSubview:self.chooseButton];
     
@@ -194,20 +200,26 @@ static const CGFloat kLayoutImageScrollViewAnimationDuration = 0.25;
     [super updateViewConstraints];
     
     if (!self.didSetupConstraints) {
-        // ---------------------------
-        // The label "Move and Scale".
-        // ---------------------------
+
+        CGFloat constant;
+        NSLayoutConstraint *constraint;
         
-        NSLayoutConstraint *constraint = [NSLayoutConstraint constraintWithItem:self.moveAndScaleLabel attribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual
-                                                                         toItem:self.view attribute:NSLayoutAttributeCenterX multiplier:1.0f
-                                                                       constant:0.0f];
-        [self.view addConstraint:constraint];
-        
-        CGFloat constant = kPortraitMoveAndScaleLabelVerticalMargin;
-        self.moveAndScaleLabelTopConstraint = [NSLayoutConstraint constraintWithItem:self.moveAndScaleLabel attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual
-                                                                              toItem:self.view attribute:NSLayoutAttributeTop multiplier:1.0f
-                                                                            constant:constant];
-        [self.view addConstraint:self.moveAndScaleLabelTopConstraint];
+        if (self.showLabel) {
+            // ---------------------------
+            // The label "Move and Scale".
+            // ---------------------------
+            
+            constraint = [NSLayoutConstraint constraintWithItem:self.moveAndScaleLabel attribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual
+                                                                             toItem:self.view attribute:NSLayoutAttributeCenterX multiplier:1.0f
+                                                                           constant:0.0f];
+            [self.view addConstraint:constraint];
+            
+            constant = kPortraitMoveAndScaleLabelVerticalMargin;
+            self.moveAndScaleLabelTopConstraint = [NSLayoutConstraint constraintWithItem:self.moveAndScaleLabel attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual
+                                                                                  toItem:self.view attribute:NSLayoutAttributeTop multiplier:1.0f
+                                                                                constant:constant];
+            [self.view addConstraint:self.moveAndScaleLabelTopConstraint];
+        }
         
         // --------------------
         // The button "Cancel".
@@ -297,11 +309,11 @@ static const CGFloat kLayoutImageScrollViewAnimationDuration = 0.25;
 
 - (UILabel *)moveAndScaleLabel
 {
-    if (!_moveAndScaleLabel) {
+    if (!_moveAndScaleLabel && _showLabel) {
         _moveAndScaleLabel = [[UILabel alloc] init];
         _moveAndScaleLabel.translatesAutoresizingMaskIntoConstraints = NO;
         _moveAndScaleLabel.backgroundColor = [UIColor clearColor];
-        _moveAndScaleLabel.text = NSLocalizedString(@"Move and Scale", @"Move and Scale label");
+        _moveAndScaleLabel.text = NSLocalizedString(self.textForLabel, @"Move and Scale label");
         _moveAndScaleLabel.textColor = [UIColor whiteColor];
         _moveAndScaleLabel.opaque = NO;
     }
@@ -745,6 +757,27 @@ static const CGFloat kLayoutImageScrollViewAnimationDuration = 0.25;
             break;
         }
     }
+    if (self.drawMaskOutline) {
+        [self drawOutlineOfMask];
+    }
+}
+
+- (void)drawOutlineOfMask {
+    UIGraphicsBeginImageContextWithOptions(self.overlayView.frame.size, NO, 0);
+    CGContextSetShouldAntialias(UIGraphicsGetCurrentContext(), NO);
+    [self.outlineColor setStroke];
+    CGRect screenBounds = [[UIScreen mainScreen] bounds];
+    CGFloat widthMinusOnePixel = CGRectGetWidth(screenBounds) - 2;
+    CGFloat adjustedScale = widthMinusOnePixel / CGRectGetWidth(screenBounds);
+    
+    UIBezierPath *outlinePath = [UIBezierPath bezierPathWithCGPath:[self.maskPath CGPath]];
+    CGAffineTransform transform = CGAffineTransformMake(adjustedScale, 0, 0, 1.f, 1.f, 0);
+    [outlinePath applyTransform:transform];
+    outlinePath.lineWidth = 2;
+    [outlinePath stroke];
+    UIImage *outlineImage = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    [self.overlayView addSubview:[[UIImageView alloc] initWithImage:outlineImage]];
 }
 
 - (UIImage *)croppedImage:(UIImage *)image cropMode:(RSKImageCropMode)cropMode cropRect:(CGRect)cropRect rotationAngle:(CGFloat)rotationAngle zoomScale:(CGFloat)zoomScale maskPath:(UIBezierPath *)maskPath applyMaskToCroppedImage:(BOOL)applyMaskToCroppedImage

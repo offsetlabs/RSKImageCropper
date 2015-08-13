@@ -150,6 +150,26 @@ typedef NS_ENUM(NSUInteger, RSKImageCropMode) {
  */
 @property (assign, getter=isRotationEnabled, nonatomic) BOOL rotationEnabled;
 
+/**
+ A Boolean value that determines whether an outline should be drawn around the mask. Default value is `YES`.
+ */
+@property (assign, nonatomic) BOOL drawMaskOutline;
+
+/**
+ A UIColor that determines the color of the outline if `drawMaskOutline` is `YES`. Default value is `[UIColor whiteColor]`.
+ */
+@property (assign, nonatomic) UIColor *outlineColor;
+
+/**
+ A Boolean value that determines whether the label should be shown. Default value is `YES`.
+ */
+@property (assign, nonatomic) BOOL showLabel;
+
+/**
+ A string with the text shown on the label over the mask. Default value is `Move and scale`.
+ */
+@property (assign, nonatomic) NSString *textForLabel;
+
 /// -------------------------------
 /// @name Accessing the UI Elements
 /// -------------------------------

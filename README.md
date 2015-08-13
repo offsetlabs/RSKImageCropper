@@ -4,6 +4,8 @@
 	<img src="Screenshot.png" alt="Sample">
 </p>
 
+Forked to optionally add an outline around the mask and set text of the label.
+
 An image cropper for iOS like in the Contacts app with support for landscape orientation.
 
 ## Installation
