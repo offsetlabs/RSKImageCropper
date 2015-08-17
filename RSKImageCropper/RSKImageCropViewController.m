@@ -28,6 +28,7 @@
 #import "UIImage+RSKImageCropper.h"
 #import "CGGeometry+RSKImageCropper.h"
 #import "UIApplication+RSKImageCropper.h"
+#import "MBProgressHUD.h"
 
 static const CGFloat kPortraitCircleMaskRectInnerEdgeInset = 15.0f;
 static const CGFloat kPortraitSquareMaskRectInnerEdgeInset = 20.0f;
@@ -59,6 +60,7 @@ static const CGFloat kLayoutImageScrollViewAnimationDuration = 0.25;
 @property (strong, nonatomic) UILabel *moveAndScaleLabel;
 @property (strong, nonatomic) UIButton *cancelButton;
 @property (strong, nonatomic) UIButton *chooseButton;
+@property (strong, nonatomic) MBProgressHUD *hud;
 
 @property (strong, nonatomic) UITapGestureRecognizer *doubleTapGestureRecognizer;
 @property (strong, nonatomic) UIRotationGestureRecognizer *rotationGestureRecognizer;
@@ -85,6 +87,7 @@ static const CGFloat kLayoutImageScrollViewAnimationDuration = 0.25;
         _drawMaskOutline = YES;
         _outlineColor = [UIColor whiteColor];
         _showLabel = YES;
+        _showProgressHUD = YES;
         _textForLabel = @"Move and scale";
     }
     return self;
@@ -880,6 +883,12 @@ static const CGFloat kLayoutImageScrollViewAnimationDuration = 0.25;
     if ([self.delegate respondsToSelector:@selector(imageCropViewController:willCropImage:)]) {
         [self.delegate imageCropViewController:self willCropImage:self.originalImage];
     }
+
+    if (self.showProgressHUD) {
+        self.hud = [MBProgressHUD showHUDAddedTo:self.view animated:YES];
+        self.hud.labelText = NSLocalizedString(@"Edit.RecropHudText", "Cropping image...");
+    }
+
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         CGRect cropRect = self.cropRect;
         CGFloat rotationAngle = self.rotationAngle;
@@ -892,6 +901,7 @@ static const CGFloat kLayoutImageScrollViewAnimationDuration = 0.25;
             } else if ([self.delegate respondsToSelector:@selector(imageCropViewController:didCropImage:usingCropRect:)]) {
                 [self.delegate imageCropViewController:self didCropImage:croppedImage usingCropRect:cropRect];
             }
+            [self.hud hide:YES];
         });
     });
 }

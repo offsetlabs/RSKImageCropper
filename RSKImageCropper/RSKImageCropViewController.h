@@ -170,6 +170,11 @@ typedef NS_ENUM(NSUInteger, RSKImageCropMode) {
  */
 @property (assign, nonatomic) NSString *textForLabel;
 
+/**
+ A Boolean value that determines whether the label should be shown. Default value is `YES`.
+ */
+@property (assign, nonatomic) BOOL showProgressHUD;
+
 /// -------------------------------
 /// @name Accessing the UI Elements
 /// -------------------------------
